@@ -126,4 +126,49 @@ public class CartService {
                 total
         );
     }
+
+    @Transactional
+    public void updateProductQuantity(
+            Long userId,
+            Long productId,
+            int quantity
+    ) {
+
+        if (quantity < 1) {
+
+            throw new IllegalArgumentException(
+                    "A quantidade deve ser maior que zero."
+            );
+        }
+
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("Carrinho não encontrado."));
+
+        CartItem cartItem = cartItemRepository
+                .findByCartIdAndProductId(cart.getId(), productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Produto não encontrado no carrinho."));
+
+        cartItem.setQuantity(quantity);
+
+        cartItemRepository.save(cartItem);
+    }
+
+    @Transactional
+    public void removeProductFromCart(Long userId, Long productId) {
+
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("Carrinho não encontrado."));
+
+        CartItem cartItem = cartItemRepository
+                .findByCartIdAndProductId(cart.getId(), productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Produto não encontrado no carrinho."));
+
+        cart.getItems().remove(cartItem);
+
+        cartItemRepository.delete(cartItem);
+    }
 }
